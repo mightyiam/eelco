@@ -2,6 +2,7 @@ mod util;
 
 use std::os::unix::fs::PermissionsExt;
 
+use assert_cmd::cargo::CommandCargoExt;
 use assert_fs::fixture::FileWriteStr;
 use indoc::indoc;
 use predicates::{
@@ -73,5 +74,27 @@ fn io_error() {
             .assert()
             .failure()
             .stderr(predicates::str::starts_with("Error: "));
+    });
+}
+
+#[test]
+fn call_nixpkgs_fn() {
+    with_eelco(|file, eelco| {
+        file.write_str(indoc! {"
+            ```nix
+            let
+                pkgs = import <nixpkgs> {};
+            in
+                assert pkgs.lib.strings.toUpper \"lookup paths considered harmful\" == \"LOOKUP PATHS CONSIDERED HARMFUL\"; null
+            ```
+        "})
+        .unwrap();
+
+        let file_path = file.path().to_str().unwrap();
+
+        eelco
+            .assert()
+            .success()
+            .stderr(contains(format!("PASS: {file_path}:1\n")));
     });
 }
