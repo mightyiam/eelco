@@ -9,7 +9,7 @@ use itertools::Itertools;
 pub(crate) enum Example {
     Repl(ReplExample),
     Expression(ExpressionExample),
-    File
+    File,
 }
 
 pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
@@ -55,6 +55,11 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                     }
                     (Some("file"), _) => {
                         let filename = info_words.next()?;
+                        if filename != "default.nix" {
+                            return Some(anyhow::bail!(
+                                "File name {filename} but needs to be 'default.nix'"
+                            ));
+                        }
                         /* TODO: Check what kind of file we have to determine how to parse it */
                         Some(Ok(Example::File)) /* TODO: Return our example file's contents */
                     }
