@@ -68,6 +68,12 @@ impl State {
                 let event = OutputEvent::ExpressionCommand(EvaluateExpression(example));
                 (example_id, example_state, event)
             }
+            Example::File(example) => {
+                let example_id = example.id.clone();
+                let example_state = ExampleState::File(FileExampleState::new(example));
+                let event = OutputEvent::FileCommand(EvaluateFile(example));
+                (example_id, example_state, event)
+            }
         };
 
         self.examples.insert(id.clone(), example_state)?;

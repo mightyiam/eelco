@@ -56,12 +56,12 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                     (Some("file"), _) => {
                         let filename = info_words.next()?;
                         if filename != "default.nix" {
-                            return Some(anyhow::bail!(
-                                "File name {filename} but needs to be 'default.nix'"
-                            ));
+                            return Some(Err(anyhow::anyhow!(
+                                "File name is {filename} but should be 'default.nix'"
+                            )));
                         }
                         /* TODO: Check what kind of file we have to determine how to parse it */
-                        Some(Ok(Example::File)) /* TODO: Return our example file's contents */
+                        Some(Ok(Example::File)) /* TODO: Return example file contents with FileExample::new */
                     }
                     _ => None,
                 };
