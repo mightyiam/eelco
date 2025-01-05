@@ -16,6 +16,5 @@ fn file_creation() {
             .unwrap();
 
         let file_path = file.path().to_str().unwrap();
-
     })
 }
