@@ -2,6 +2,7 @@ use crate::example_id::ExampleId;
 use crate::expression::ExpressionExample;
 use crate::repl::example::ReplExample;
 use crate::repl::example::NIX_REPL_LANG_TAG;
+use crate::app::state::file_state::FileExample;
 use anyhow::Context;
 use itertools::Itertools;
 
