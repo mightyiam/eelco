@@ -2,7 +2,7 @@ use futures::{FutureExt, SinkExt, StreamExt};
 
 use crate::example_id::ExampleId;
 
-use super::FileExample;
+use app::state::file_state::FileExample;
 
 #[derive(Debug)]
 pub(crate) struct EvaluateFile(pub(crate) FileExample);
@@ -22,10 +22,7 @@ pub(crate) enum FileEvent {
 }
 
 impl FileDriver {
-    pub(crate) fn new() -> (
-        Self,
-        futures::stream::LocalBoxStream<'static, FileEvent>,
-    ) {
+    pub(crate) fn new() -> (Self, futures::stream::LocalBoxStream<'static, FileEvent>) {
         let (sender, receiver) = futures::channel::mpsc::unbounded();
         let driver = Self {
             sender,

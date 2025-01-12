@@ -6,6 +6,7 @@ use crate::{
     eprintln_driver::Eprintlned,
     examples::Example,
     expression::driver::{EvaluateExpression, ExpressionEvent},
+    file::driver::FileEvent,
     repl::driver::{ReplCommand, ReplEvent},
 };
 
@@ -32,6 +33,7 @@ enum OutputEvent {
     ReplCommand(ReplCommand),
     ExpressionCommand(EvaluateExpression),
     Eprintln(String),
+    FileCommand,
 }
 
 #[derive(Debug)]
