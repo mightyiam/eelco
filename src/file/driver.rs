@@ -2,7 +2,7 @@ use futures::{FutureExt, SinkExt, StreamExt};
 
 use crate::example_id::ExampleId;
 
-use app::state::file_state::FileExample;
+use crate::app::state::file_state::FileExample;
 
 #[derive(Debug)]
 pub(crate) struct EvaluateFile(pub(crate) FileExample);

@@ -6,7 +6,7 @@ use crate::{
     eprintln_driver::Eprintlned,
     examples::Example,
     expression::driver::{EvaluateExpression, ExpressionEvent},
-    file::driver::FileEvent,
+    file::driver::FileCommand,
     repl::driver::{ReplCommand, ReplEvent},
 };
 

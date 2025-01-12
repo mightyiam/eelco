@@ -7,6 +7,7 @@ pub(crate) mod example_id;
 mod examples;
 mod expression;
 pub(crate) mod repl;
+mod file;
 
 use clap::Parser;
 use futures::{FutureExt, StreamExt};
