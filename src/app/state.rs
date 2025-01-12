@@ -1,6 +1,6 @@
 pub(crate) mod expression_state;
-pub(crate) mod repl_state;
 pub(crate) mod file_state;
+pub(crate) mod repl_state;
 
 use anyhow::bail;
 
@@ -13,8 +13,8 @@ use crate::{
 
 use self::{
     expression_state::ExpressionExampleState,
-    repl_state::{ReplExampleState, ReplSessionExpecting, ReplSessionLive, ReplSessionState},
     file_state::FileExampleState,
+    repl_state::{ReplExampleState, ReplSessionExpecting, ReplSessionLive, ReplSessionState},
 };
 
 use super::{InputEvent, OutputEvent};
@@ -361,6 +361,7 @@ impl ExamplesState {
 pub(crate) enum ExampleState {
     Repl(ReplExampleState),
     Expression(ExpressionExampleState),
+    File(FileExampleState),
 }
 
 const CLEAR_LINE: &str = "\r\u{1b}[K";
