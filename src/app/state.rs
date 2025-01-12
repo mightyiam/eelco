@@ -1,5 +1,6 @@
 pub(crate) mod expression_state;
 pub(crate) mod repl_state;
+pub(crate) mod file_state;
 
 use anyhow::bail;
 
@@ -13,6 +14,7 @@ use crate::{
 use self::{
     expression_state::ExpressionExampleState,
     repl_state::{ReplExampleState, ReplSessionExpecting, ReplSessionLive, ReplSessionState},
+    file_state::FileExampleState,
 };
 
 use super::{InputEvent, OutputEvent};

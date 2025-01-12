@@ -9,7 +9,7 @@ use itertools::Itertools;
 pub(crate) enum Example {
     Repl(ReplExample),
     Expression(ExpressionExample),
-    File,
+    File(FileExample),
 }
 
 pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
@@ -61,7 +61,7 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                             )));
                         }
                         /* TODO: Check what kind of file we have to determine how to parse it */
-                        Some(Ok(Example::File)) /* TODO: Return example file contents with FileExample::new */
+                        Some(Ok(Example::File())) /* TODO: Return example file contents with FileExample::new */
                     }
                     _ => None,
                 };
