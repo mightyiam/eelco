@@ -7,7 +7,7 @@ use util::with_eelco;
 
 #[test]
 fn fails_file_creation() {
-    with_eelco(|file, eelco| {
+    with_eelco(|file, _| {
         file.write_str(indoc! {"
             ```file flake.nix
             

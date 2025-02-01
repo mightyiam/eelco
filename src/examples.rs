@@ -57,6 +57,7 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                     (Some("file"), _) => {
                         // TODO check the value of filename
                         let filename = info_words.next()?;
+                        println!("{}",filename);
                         if filename != "default.nix" {
                             return Some(Err(anyhow::anyhow!(
                                 "File name is {filename} but should be 'default.nix'"
