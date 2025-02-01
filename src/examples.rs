@@ -45,11 +45,13 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                 let maybe_result = match (info_words.next(), info_words.contains(&"skip")) {
                     (_, true) => None,
                     (Some(NIX_REPL_LANG_TAG), _) => {
+                        println!("We're in NIX_REPL_LANG_TAG");
                         let repl_example =
                             ReplExample::try_new(id.clone(), literal.clone()).map(Example::Repl);
                         Some(repl_example)
                     }
                     (Some("nix"), _) => {
+                        println!("We're in nix");
                         let expression_example =
                             ExpressionExample::new(id.clone(), literal.clone());
                         Some(Ok(Example::Expression(expression_example)))
