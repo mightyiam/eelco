@@ -8,6 +8,7 @@ use crate::{
     example_id::ExampleId,
     examples::Example,
     expression::driver::{EvaluateExpression, ExpressionEvent},
+    file::driver::EvaluateFile,
     repl::driver::{ReplCommand, ReplEvent, ReplQuery},
 };
 
@@ -72,7 +73,7 @@ impl State {
             }
             Example::File(example) => {
                 let example_id = example.id.clone();
-                let example_state = ExampleState::File(FileExampleState::new(example));
+                let example_state = ExampleState::File(FileExampleState::new(&example));
                 let event = OutputEvent::FileCommand(EvaluateFile(example));
                 (example_id, example_state, event)
             }

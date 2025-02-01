@@ -70,7 +70,6 @@ impl FileDriver {
     async fn spawn_nix(&mut self, example: FileExample) {
         let task = tokio::process::Command::new(env!("NIX_INSTANTIATE_CMD_PATH"))
             .args(["--expr", "--eval"])
-            .arg(example.expression)
             .output();
 
         self.nix_processes

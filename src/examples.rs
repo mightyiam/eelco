@@ -1,8 +1,8 @@
+use crate::app::state::file_state::FileExample;
 use crate::example_id::ExampleId;
 use crate::expression::ExpressionExample;
 use crate::repl::example::ReplExample;
 use crate::repl::example::NIX_REPL_LANG_TAG;
-use crate::app::state::file_state::FileExample;
 use anyhow::Context;
 use itertools::Itertools;
 
@@ -55,14 +55,16 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                         Some(Ok(Example::Expression(expression_example)))
                     }
                     (Some("file"), _) => {
+                        // TODO check the value of filename
                         let filename = info_words.next()?;
                         if filename != "default.nix" {
                             return Some(Err(anyhow::anyhow!(
                                 "File name is {filename} but should be 'default.nix'"
                             )));
                         }
+                        let file_example = FileExample::new(id.clone());
                         /* TODO: Check what kind of file we have to determine how to parse it */
-                        Some(Ok(Example::File())) /* TODO: Return example file contents with FileExample::new */
+                        Some(Ok(Example::File(file_example))) /* TODO: Return example file contents with FileExample::new */
                     }
                     _ => None,
                 };
