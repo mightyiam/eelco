@@ -40,13 +40,13 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                 let comrak::nodes::NodeCodeBlock { info, literal, .. } = code_block;
                 let line = ast.sourcepos.start.line;
                 let id = ExampleId::new(path, line);
-                let mut info_words = info.split_ascii_whitespace();
+                let mut info_words = info.split_ascii_whitespace().peekable();
 
-                println!("next: {:?}", info_words.next());
-                println!("contains: {}", info_words.contains(&"skip"));
-                println!("next: {:?}", info_words.next());
-                let maybe_result = match (info_words.next(), info_words.contains(&"skip")) {
-                    (_, true) => None,
+                let maybe_result = match (info_words.next(), info_words.peek() == Some(&"skip")) {
+                    (_, true) => {
+                        info_words.next();
+                        None
+                    }
                     (Some(NIX_REPL_LANG_TAG), _) => {
                         let repl_example =
                             ReplExample::try_new(id.clone(), literal.clone()).map(Example::Repl);
@@ -59,11 +59,10 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                     }
                     (Some("file"), _) => {
                         // TODO check the value of filename
-                        let filename = "filename"; //info_words.next();
-                        println!("filename: {:?}: ", info_words.next());
+                        let filename = info_words.next().unwrap();
                         if filename != "default.nix" {
                             return Some(Err(anyhow::anyhow!(
-                                "File name is blank but should be 'default.nix'"
+                                "File name is {filename} but should be 'default.nix'"
                             )));
                         }
                         let file_example = FileExample::new(id.clone());
