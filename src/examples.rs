@@ -38,30 +38,30 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
         .filter_map(|(path, ast)| {
             if let comrak::nodes::NodeValue::CodeBlock(code_block) = ast.value {
                 let comrak::nodes::NodeCodeBlock { info, literal, .. } = code_block;
-
-                println!("info: {}",info);
                 let line = ast.sourcepos.start.line;
                 let id = ExampleId::new(path, line);
                 let mut info_words = info.split_ascii_whitespace();
-                println!("{:?}",info_words.next_back());
+
+                println!("next: {:?}", info_words.next());
+                println!("contains: {}", info_words.contains(&"skip"));
+                println!("next: {:?}", info_words.next());
                 let maybe_result = match (info_words.next(), info_words.contains(&"skip")) {
                     (_, true) => None,
                     (Some(NIX_REPL_LANG_TAG), _) => {
-                        println!("We're in NIX_REPL_LANG_TAG");
                         let repl_example =
                             ReplExample::try_new(id.clone(), literal.clone()).map(Example::Repl);
                         Some(repl_example)
                     }
                     (Some("nix"), _) => {
-                        println!("We're in nix");
                         let expression_example =
                             ExpressionExample::new(id.clone(), literal.clone());
                         Some(Ok(Example::Expression(expression_example)))
                     }
                     (Some("file"), _) => {
                         // TODO check the value of filename
-                        let filename = info_words.next();
-                        if filename? != "default.nix" {
+                        let filename = "filename"; //info_words.next();
+                        println!("filename: {:?}: ", info_words.next());
+                        if filename != "default.nix" {
                             return Some(Err(anyhow::anyhow!(
                                 "File name is blank but should be 'default.nix'"
                             )));
