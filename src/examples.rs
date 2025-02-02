@@ -58,9 +58,12 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                         // TODO check the value of filename
                         let filename = info.split_ascii_whitespace().next_back().unwrap();
                         if filename != "default.nix" {
-                            return Some(Err(anyhow::anyhow!(
+                            println!("Goes in");
+                            panic!(
+                            //Some(Err(anyhow::anyhow!(
                                 "File name is {filename} but should be 'default.nix'"
-                            )));
+                            );
+                            //)));
                         }
                         let file_example = FileExample::new(id.clone());
                         /* TODO: Check what kind of file we have to determine how to parse it */
@@ -72,15 +75,15 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                 match maybe_result {
                     Some(result) => {
                         match result {
-                            Ok(result) => Some(result.context(format!("{id}"))),
-                            Err(error) => 
+                            Ok(result) => Some(Ok(result)),
+                            Err(error) => Some(Err(error.context(format!("{id}"))))
 
                         }
                         //Some(result.context(format!("{id}")))
                     }
                     _ => None
                 }
-                //maybe_result.map(|result| result.context(format!("{id}")))
+                // maybe_result.map(|result| result.context(format!("{id}")))
 
             } else {
                 None
