@@ -5,7 +5,6 @@ use crate::repl::example::ReplExample;
 use crate::repl::example::NIX_REPL_LANG_TAG;
 use anyhow::Context;
 use itertools::Itertools;
-use nix::libc::SK_MEMINFO_RMEM_ALLOC;
 
 #[derive(Debug, Clone)]
 pub(crate) enum Example {
