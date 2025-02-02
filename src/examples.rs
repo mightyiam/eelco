@@ -69,7 +69,19 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                     _ => None,
                 };
 
-                maybe_result.map(|result| result.context(format!("{id}")))
+                match maybe_result {
+                    Some(result) => {
+                        match result {
+                            Ok(result) => Some(result.context(format!("{id}"))),
+                            Err(error) => 
+
+                        }
+                        //Some(result.context(format!("{id}")))
+                    }
+                    _ => None
+                }
+                //maybe_result.map(|result| result.context(format!("{id}")))
+
             } else {
                 None
             }
