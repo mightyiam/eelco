@@ -5,6 +5,7 @@ use crate::repl::example::ReplExample;
 use crate::repl::example::NIX_REPL_LANG_TAG;
 use anyhow::Context;
 use itertools::Itertools;
+use nix::libc::SK_MEMINFO_RMEM_ALLOC;
 
 #[derive(Debug, Clone)]
 pub(crate) enum Example {
@@ -42,7 +43,10 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                 let id = ExampleId::new(path, line);
                 let mut info_words = info.split_ascii_whitespace();
 
-                let maybe_result = match (info_words.next(), info_words.next_back()? == "skip") {
+                let first_var = info_words.next();
+                let second_var = info_words.next_back();
+
+                let maybe_result = match (first_var, second_var == Some("skip")) {
                     (_, true) => None,
                     (Some(NIX_REPL_LANG_TAG), _) => {
                         let repl_example =
@@ -57,7 +61,7 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                     (Some("file"), _) => {
                         // TODO check the value of filename
                         //let filename = info.split_ascii_whitespace().next_back().unwrap();
-                        let filename = info_words.next()?;
+                        let filename = info_words.next().unwrap();
                         if filename != "default.nix" {
                             return Some(Err(anyhow::anyhow!(
                                 "File name is {filename} but should be 'default.nix'"

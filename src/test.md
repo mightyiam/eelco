@@ -1,3 +1,3 @@
-```file flake.nix
-
+```nix
+assert true; null
 ```
