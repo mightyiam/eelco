@@ -42,7 +42,7 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                 let id = ExampleId::new(path, line);
                 let mut info_words = info.split_ascii_whitespace();
 
-                let maybe_result = match (info_words.next(), info_words.contains(&"skip")) {
+                let maybe_result = match (info_words.next(), info_words.next_back()? == "skip") {
                     (_, true) => None,
                     (Some(NIX_REPL_LANG_TAG), _) => {
                         let repl_example =
@@ -56,7 +56,8 @@ pub(crate) fn obtain(glob: &str) -> anyhow::Result<Vec<Example>> {
                     }
                     (Some("file"), _) => {
                         // TODO check the value of filename
-                        let filename = info.split_ascii_whitespace().next_back().unwrap();
+                        //let filename = info.split_ascii_whitespace().next_back().unwrap();
+                        let filename = info_words.next()?;
                         if filename != "default.nix" {
                             return Some(Err(anyhow::anyhow!(
                                 "File name is {filename} but should be 'default.nix'"
