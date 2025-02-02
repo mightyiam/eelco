@@ -2,20 +2,19 @@ mod util;
 
 use assert_fs::fixture::FileWriteStr;
 use indoc::indoc;
-use util::with_eelco;
 use predicates::str::contains;
+use util::with_eelco;
 
 #[test]
 fn fails_file_creation() {
     with_eelco(|file, eelco| {
         file.write_str(indoc! {"
-            ```file flake.nix
+            ```file flake.nix 
             
             ```
         "})
-        .unwrap();
+            .unwrap();
 
-        eelco.assert().failure().stderr(
-            contains("File name is "));
+        eelco.assert().failure().stderr(contains("File name is "));
     })
 }

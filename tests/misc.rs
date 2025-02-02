@@ -60,6 +60,9 @@ fn skip() {
             ```nix
             null
             ```
+            ```nix skip foo
+            assert false; null
+            ```
         "})
             .unwrap();
 
