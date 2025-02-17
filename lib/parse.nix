@@ -1,10 +1,18 @@
 lib: path: content: let
-  parseOpeningFence = line: let
-    openingFenceMatch = lib.match "^(```+).* example=([^ ]+)( |$)" line;
+  parseOpeningFence = {
+    line,
+    index,
+  }: let
+    # <<< openingFenceMatch = lib.match "^(```+).* example=([^ ]+)( |$)" line;
+    openingFenceMatch = lib.match "^(```+)(.*)$" line;
   in
     if openingFenceMatch == null
     then null
-    else {
+    else let
+      infoString = lib.elemAt openingFenceMatch 1;
+      # <<< exampleMatch = lib.match "example=([^ ]+)" line;
+      infoWords = lib.strings.splitString " " infoString;
+    in {
       fenceDepth = lib.stringLength (lib.elemAt openingFenceMatch 0);
       exampleName = lib.elemAt openingFenceMatch 1;
     };
@@ -32,7 +40,7 @@ lib: path: content: let
             inherit examples;
           }
           else let
-            openingFence = parseOpeningFence line;
+            openingFence = parseOpeningFence {inherit index line;};
             example =
               examples.${openingFence.exampleName}
               or {
