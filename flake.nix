@@ -9,8 +9,6 @@
   inputs.treefmt-nix.url = "github:numtide/treefmt-nix";
   inputs.treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
 
-  nixConfig.sandbox-paths = "/nix/var/nix/daemon-socket/socket";
-
   outputs = {
     self,
     crane,
@@ -75,6 +73,12 @@
         }
       );
 
+      # TODO: move this somewhere more appropriate
+      packages.failingTest = self.lib.eelco {
+        inherit pkgs;
+        src = ./fixtures/failing;
+      };
+
       apps = import ./release {inherit pkgs flake-utils;};
 
       devShells.default = craneLib.devShell {
@@ -89,7 +93,14 @@
 
       formatter = treefmtEval.config.build.wrapper;
 
-      checks.formatting = treefmtEval.config.build.check self;
-      checks.build = packages.default;
-    });
+      checks =
+        {
+          formatting = treefmtEval.config.build.check self;
+          # build = packages.default;
+        }
+        // (import ./lib-tests.nix {inherit pkgs self;});
+    })
+    // {
+      lib.eelco = import ./lib/eelco.nix;
+    };
 }
