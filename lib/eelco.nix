@@ -80,6 +80,29 @@ in
       lib.nameValuePair relativePath (builtins.readFile path)))
     lib.listToAttrs
     (lib.mapAttrs (import ./parse.nix lib))
+    (
+      examplesErrorsByPath: {
+        examplesByPath =
+          lib.mapAttrs (path: {examples, ...}:
+            examples);
+        errors = lib.pipe examplesErrorsByPath [
+          (lib.mapAttrsToList (path: {errors, ...}: errors))
+          lib.flatten
+        ];
+      }
+    )
+    ({
+      examplesByPath,
+      errors,
+    }: let
+      errorMsg = lib.concatStringsSep "\n" (map ({
+        path,
+        lineIndex,
+        message,
+      }: "- ${path}:${toString lineIndex} ${message}")
+      errors);
+    in
+      assert lib.assertMsg (errors == []) "finished parsing, with ${toString (builtins.length errors)} error(s)\n${errorMsg}"; examplesByPath)
     (lib.concatMapAttrs (
       path: examples:
         lib.mapAttrs' (exampleName: steps: lib.nameValuePair "${path}:${exampleName}" steps) examples

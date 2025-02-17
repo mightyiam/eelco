@@ -37,196 +37,190 @@ lib: path: content: let
       state,
       examples,
       errors,
-    }: {
+      ...
+    } @ acc: {
       index,
       line,
     }:
-      {
-        "in-root" = let
-          filePathMatch = lib.match "^`([^`]+)`:$" line;
-        in
-          if filePathMatch != null
-          then {
-            state = {
-              type = "in-file-op-step";
-              exampleFilePath = lib.elemAt filePathMatch 0;
-            };
-            inherit examples errors;
-          }
-          else let
-            maybeOpeningFence = parseOpeningFence line;
-          in (
-            if maybeOpeningFence != null
-            then let
-              openingFence = maybeOpeningFence;
+      acc
+      // {
+        prevLineIndex = index;
+      }
+      // ({
+          "in-root" = let
+            filePathMatch = lib.match "^`([^`]+)`:$" line;
+          in
+            if filePathMatch != null
+            then {
+              state = {
+                type = "in-file-op-step";
+                exampleFilePath = lib.elemAt filePathMatch 0;
+              };
+            }
+            else let
+              maybeOpeningFence = parseOpeningFence line;
             in (
-              if openingFence ? error
-              then {
-                state = {
-                  type = "in-fenced-code-block";
-                  inherit openingFence;
+              if maybeOpeningFence != null
+              then let
+                openingFence = maybeOpeningFence;
+              in (
+                if openingFence ? error
+                then {
+                  state = {
+                    type = "in-fenced-code-block";
+                    inherit openingFence;
+                  };
+                  errors =
+                    errors
+                    ++ [
+                      {
+                        inherit path;
+                        lineIndex = index;
+                        message = openingFence.error;
+                      }
+                    ];
+                }
+                else let
+                  example =
+                    examples.${openingFence.exampleName}
+                    or {
+                      steps = [];
+                    };
+                in {
+                  state = {
+                    type = "in-step-fenced-code-block";
+                    inherit openingFence;
+                  };
+                  examples =
+                    examples
+                    // {
+                      ${openingFence.exampleName} =
+                        example
+                        // {
+                          steps =
+                            example.steps
+                            ++ [
+                              {
+                                index = builtins.length example.steps;
+                                type = "bash-session";
+                                text = null;
+                              }
+                            ];
+                        };
+                    };
+                }
+              )
+              else {}
+            );
+          "in-fenced-code-block" = let
+          in
+            if isClosingFence line state.openingFence.fenceDepth
+            then {
+              state.type = "in-root";
+            }
+            else {};
+          "in-step-fenced-code-block" = let
+            exampleName = state.openingFence.exampleName;
+            example = examples.${exampleName} or (throw "In state in-step-fenced-code-block, but couldn't find an example named ${state.openingFence.exampleName}");
+            prevSteps = lib.lists.init example.steps;
+            step = lib.lists.last example.steps;
+          in
+            if isClosingFence line state.openingFence.fenceDepth
+            then {
+              state.type = "in-root";
+            }
+            else {
+              examples =
+                examples
+                // {
+                  ${exampleName} =
+                    example
+                    // {
+                      steps =
+                        prevSteps
+                        ++ [
+                          (step
+                            // {
+                              text =
+                                (
+                                  if step.text == null
+                                  then ""
+                                  else step.text + "\n"
+                                )
+                                + line;
+                            })
+                        ];
+                    };
                 };
-                errors =
-                  errors
-                  ++ [
-                    {
-                      inherit path;
-                      lineIndex = index;
-                      message = openingFence.error;
-                    }
-                  ];
-                inherit examples;
-              }
-              else let
+            };
+          "in-file-op-step" =
+            if line == ""
+            then {}
+            else let
+              maybeOpeningFence = parseOpeningFence line;
+            in
+              if maybeOpeningFence != null
+              then let
+                openingFence = maybeOpeningFence;
                 example =
                   examples.${openingFence.exampleName}
-                  or {
-                    steps = [];
+                  or {steps = [];};
+              in (
+                if openingFence ? error
+                then {
+                  state = {
+                    type = "in-fenced-code-block";
+                    inherit openingFence;
                   };
-              in {
-                state = {
-                  type = "in-step-fenced-code-block";
-                  inherit openingFence;
-                };
-                inherit errors;
-                examples =
-                  examples
-                  // {
-                    ${openingFence.exampleName} =
-                      example
-                      // {
-                        steps =
-                          example.steps
-                          ++ [
-                            {
-                              index = builtins.length example.steps;
-                              type = "bash-session";
-                              text = null;
-                            }
-                          ];
-                      };
+                  errors =
+                    errors
+                    ++ [
+                      {
+                        inherit path;
+                        lineIndex = index;
+                        message = openingFence.error;
+                      }
+                    ];
+                }
+                else {
+                  state = {
+                    type = "in-step-fenced-code-block";
+                    inherit openingFence;
                   };
-              }
-            )
-            else {inherit state examples errors;}
-          );
-        "in-fenced-code-block" = let
-        in
-          if isClosingFence line state.openingFence.fenceDepth
-          then {
-            state.type = "in-root";
-            inherit examples errors;
-          }
-          else {
-            inherit state examples errors;
-          };
-        "in-step-fenced-code-block" = let
-          exampleName = state.openingFence.exampleName;
-          example = examples.${exampleName} or (throw "In state in-step-fenced-code-block, but couldn't find an example named ${state.openingFence.exampleName}");
-          prevSteps = lib.lists.init example.steps;
-          step = lib.lists.last example.steps;
-        in
-          if isClosingFence line state.openingFence.fenceDepth
-          then {
-            state.type = "in-root";
-            inherit examples errors;
-          }
-          else {
-            inherit state errors;
-            examples =
-              examples
-              // {
-                ${exampleName} =
-                  example
-                  // {
-                    steps =
-                      prevSteps
-                      ++ [
-                        (step
-                          // {
-                            text =
-                              (
-                                if step.text == null
-                                then ""
-                                else step.text + "\n"
-                              )
-                              + line;
-                          })
-                      ];
-                  };
-              };
-          };
-        "in-file-op-step" =
-          if line == ""
-          then {inherit state examples errors;}
-          else let
-            maybeOpeningFence = parseOpeningFence line;
-          in
-            if maybeOpeningFence != null
-            then let
-              openingFence = maybeOpeningFence;
-              example =
-                examples.${openingFence.exampleName}
-                or {steps = [];};
-            in (
-              if openingFence ? error
-              then {
-                state = {
-                  type = "in-fenced-code-block";
-                  inherit openingFence;
-                };
+                  examples =
+                    examples
+                    // {
+                      ${openingFence.exampleName} =
+                        example
+                        // {
+                          steps =
+                            example.steps
+                            ++ [
+                              {
+                                path = state.exampleFilePath;
+                                index = builtins.length example.steps;
+                                type = "file-upsert";
+                                text = null;
+                              }
+                            ];
+                        };
+                    };
+                }
+              )
+              else {
+                state.type = "in-root";
                 errors =
                   errors
                   ++ [
                     {
                       inherit path;
                       lineIndex = index;
-                      message = openingFence.error;
+                      message = "Invalid line after path statement";
                     }
                   ];
-                inherit examples;
-              }
-              else {
-                state = {
-                  type = "in-step-fenced-code-block";
-                  inherit openingFence;
-                };
-                inherit errors;
-                examples =
-                  examples
-                  // {
-                    ${openingFence.exampleName} =
-                      example
-                      // {
-                        steps =
-                          example.steps
-                          ++ [
-                            {
-                              path = state.exampleFilePath;
-                              index = builtins.length example.steps;
-                              type = "file-upsert";
-                              text = null;
-                            }
-                          ];
-                      };
-                  };
-              }
-            )
-            else {
-              state.type = "in-root";
-              errors =
-                errors
-                ++ [
-                  {
-                    inherit path;
-                    lineIndex = index;
-                    message = "Invalid line after path statement";
-                  }
-                ];
-              inherit examples;
-            };
-      }
-      .${state.type}
+              };
+        }
+        .${state.type})
   );
 in
   lib.pipe content [
@@ -237,20 +231,25 @@ in
         state = {
           type = "in-root";
         };
+        prevLineIndex = 0;
         examples = {};
         errors = [];
       })
     (result:
-      assert lib.assertMsg (result.state.type == "in-root") "finished parsing but state = `${result.state.type}`";
-      # TODO: format errors nicely. they look like this:
-      # error type:
-      # ```
-      # {
-      #    path: str,
-      #    lineIndex: int,
-      #    error: str,
-      # }
-      # ```
-      assert lib.assertMsg (result.errors == []) "finished parsing, with ${toString (builtins.length result.errors)} error(s): ${builtins.toJSON result.errors}"; result)
-    (lib.getAttr "examples")
+      if result.state.type != "in-root"
+      then
+        result
+        // {
+          errors =
+            result.errors
+            ++ [
+              {
+                inherit path;
+                lineIndex = result.prevLineIndex;
+                error = "finished parsing but state = `${result.state.type}`";
+              }
+            ];
+        }
+      else result)
+    (lib.getAttrs ["examples" "errors"])
   ]

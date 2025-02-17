@@ -64,10 +64,6 @@
 
         python ${./print-log-of-failed-drv-references.py} $drv > failed.log
 
-        # <<< TODO: this is bogus >>>
-        echo "**** start catting"
-        cat failed.log
-        echo "**** end catting"
         if ! grep "Goodbye" $log_file; then
           echo "Test should have printed a failure message"
           exit 1

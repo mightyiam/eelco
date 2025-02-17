@@ -1,4 +1,4 @@
 This is an incomplete code fence block:
 
-```nix
+```md example=a
 oops
