@@ -3,18 +3,27 @@ lib: path: content: let
     line,
     index,
   }: let
-    # <<< openingFenceMatch = lib.match "^(```+).* example=([^ ]+)( |$)" line;
     openingFenceMatch = lib.match "^(```+)(.*)$" line;
   in
     if openingFenceMatch == null
     then null
     else let
-      infoString = lib.elemAt openingFenceMatch 1;
-      # <<< exampleMatch = lib.match "example=([^ ]+)" line;
-      infoWords = lib.strings.splitString " " infoString;
+      infoAttrs = lib.pipe openingFenceMatch [
+        lib.last
+        (lib.splitString " ")
+        (map (word: let
+          keyAndMaybeValue = lib.splitString "=" word;
+        in
+          lib.nameValuePair (lib.first keyAndMaybeValue) (
+            if lib.length keyAndMaybeValue == 1
+            then null
+            else lib.last keyAndMaybeValue
+          )))
+        lib.listToAttrs
+      ];
     in {
       fenceDepth = lib.stringLength (lib.elemAt openingFenceMatch 0);
-      exampleName = lib.elemAt openingFenceMatch 1;
+      exampleName = infoAttrs.example or throw "Code fence at ${path}:${index} needs to have `example=<name>` or `not-tested`";
     };
 
   isClosingFence = line: fenceDepth: line == lib.strings.replicate fenceDepth "`";
