@@ -17,6 +17,7 @@
     ))
   ];
 
+  # TODO: add remaining tests in `fixtures/failing/`
   failing = {
     bad-bash-session =
       pkgs.runCommandNoCC "eelco-bad-bash-session" {
