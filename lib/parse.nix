@@ -23,7 +23,7 @@ lib: path: content: let
       ];
     in {
       fenceDepth = lib.stringLength (lib.elemAt openingFenceMatch 0);
-      exampleName = infoAttrs.example or (throw "Code fence at ${path}:${index} needs to have `example=<name>` or `not-tested`");
+      exampleName = infoAttrs.example or (throw "Code fence at ${path}:${toString index} needs to have `example=<name>` or `not-tested`");
     };
 
   isClosingFence = line: fenceDepth: line == lib.strings.replicate fenceDepth "`";
