@@ -73,12 +73,6 @@
         }
       );
 
-      # TODO: move this somewhere more appropriate
-      packages.failingTest = self.lib.eelco {
-        inherit pkgs;
-        src = ./fixtures/failing;
-      };
-
       apps = import ./release {inherit pkgs flake-utils;};
 
       devShells.default = craneLib.devShell {

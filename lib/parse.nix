@@ -14,7 +14,7 @@ lib: path: content: let
         (map (word: let
           keyAndMaybeValue = lib.splitString "=" word;
         in
-          lib.nameValuePair (lib.first keyAndMaybeValue) (
+          lib.nameValuePair (lib.head keyAndMaybeValue) (
             if lib.length keyAndMaybeValue == 1
             then null
             else lib.last keyAndMaybeValue
@@ -23,7 +23,7 @@ lib: path: content: let
       ];
     in {
       fenceDepth = lib.stringLength (lib.elemAt openingFenceMatch 0);
-      exampleName = infoAttrs.example or throw "Code fence at ${path}:${index} needs to have `example=<name>` or `not-tested`";
+      exampleName = infoAttrs.example or (throw "Code fence at ${path}:${index} needs to have `example=<name>` or `not-tested`");
     };
 
   isClosingFence = line: fenceDepth: line == lib.strings.replicate fenceDepth "`";
@@ -122,7 +122,7 @@ lib: path: content: let
           if line == ""
           then {inherit state examples;}
           else let
-            openingFence = parseOpeningFence line;
+            openingFence = parseOpeningFence {inherit index line;};
             example =
               examples.${openingFence.exampleName}
               or {steps = [];};
