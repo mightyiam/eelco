@@ -65,26 +65,17 @@ in
   lib.pipe src [
     (lib.fileset.fileFilter (file: file.hasExt "md"))
     lib.fileset.toList
-    (map toString)
-    (map builtins.unsafeDiscardStringContext)
     (map (path: let
-      relativePath = lib.pipe path [
-        (s: /. + s)
-        lib.path.splitRoot
-        (lib.getAttr "subpath")
-        lib.path.subpath.components
-        (lib.lists.drop 3)
-        lib.path.subpath.join
-      ];
+      relativePath = lib.path.removePrefix src path;
     in
       lib.nameValuePair relativePath (builtins.readFile path)))
     lib.listToAttrs
     (lib.mapAttrs (import ./parse.nix lib))
     (
       examplesErrorsByPath: {
-        examplesByPath =
-          lib.mapAttrs (path: {examples, ...}:
-            examples);
+        examplesByPath = lib.mapAttrs (path: {examples, ...}:
+          examples)
+        examplesErrorsByPath;
         errors = lib.pipe examplesErrorsByPath [
           (lib.mapAttrsToList (path: {errors, ...}: errors))
           lib.flatten
