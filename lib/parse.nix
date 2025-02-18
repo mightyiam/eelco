@@ -23,12 +23,22 @@ lib: path: content: let
       if infoAttrs ? example
       then {
         inherit fenceDepth;
+        type = "example";
         exampleName = infoAttrs.example;
       }
-      else {
-        inherit fenceDepth;
-        error = "Code fence needs to have `example=<name>` or `not-tested`";
-      };
+      else
+        (
+          if infoAttrs ? not-tested
+          then {
+            inherit fenceDepth;
+            type = "not-tested";
+          }
+          else {
+            inherit fenceDepth;
+            type = "error";
+            error = "Code fence needs to have `example=<name>` or `not-tested`";
+          }
+        );
 
   isClosingFence = line: fenceDepth: line == lib.strings.replicate fenceDepth "`";
 
@@ -63,53 +73,60 @@ lib: path: content: let
               if maybeOpeningFence != null
               then let
                 openingFence = maybeOpeningFence;
-              in (
-                if openingFence ? error
-                then {
-                  state = {
-                    type = "in-fenced-code-block";
-                    inherit openingFence;
-                  };
-                  errors =
-                    errors
-                    ++ [
-                      {
-                        inherit path;
-                        lineIndex = index;
-                        message = openingFence.error;
-                      }
-                    ];
-                }
-                else let
-                  example =
-                    examples.${openingFence.exampleName}
-                    or {
-                      steps = [];
+              in
+                {
+                  example = let
+                    example =
+                      examples.${openingFence.exampleName}
+                      or {
+                        steps = [];
+                      };
+                  in {
+                    state = {
+                      type = "in-step-fenced-code-block";
+                      inherit openingFence;
                     };
-                in {
-                  state = {
-                    type = "in-step-fenced-code-block";
-                    inherit openingFence;
+                    examples =
+                      examples
+                      // {
+                        ${openingFence.exampleName} =
+                          example
+                          // {
+                            steps =
+                              example.steps
+                              ++ [
+                                {
+                                  index = builtins.length example.steps;
+                                  type = "bash-session";
+                                  text = null;
+                                }
+                              ];
+                          };
+                      };
                   };
-                  examples =
-                    examples
-                    // {
-                      ${openingFence.exampleName} =
-                        example
-                        // {
-                          steps =
-                            example.steps
-                            ++ [
-                              {
-                                index = builtins.length example.steps;
-                                type = "bash-session";
-                                text = null;
-                              }
-                            ];
-                        };
+                  not-tested = {
+                    state = {
+                      type = "in-fenced-code-block";
+                      inherit openingFence;
                     };
+                  };
+                  error = {
+                    state = {
+                      type = "in-fenced-code-block";
+                      inherit openingFence;
+                    };
+                    errors =
+                      errors
+                      ++ [
+                        {
+                          inherit path;
+                          lineIndex = index;
+                          message = openingFence.error;
+                        }
+                      ];
+                  };
                 }
-              )
+                .${openingFence.type}
               else {}
             );
           "in-fenced-code-block" = let
