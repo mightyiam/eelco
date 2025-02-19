@@ -5,6 +5,7 @@
   runtimeInputs ? [],
   env ? {},
   requiredSystemFeatures ? [],
+  prompts ? [],
 }: let
   inherit (pkgs) lib;
 
@@ -20,6 +21,7 @@
                 hash = "sha256-T8EXir3507nJEHWyVq2ud+DjoiUxueY/QAfJnBGO4Yw=";
               }
             )
+            ./repr.patch
           ];
       }))
     ]);
@@ -33,6 +35,10 @@
     exampleId,
   }: let
     file = pkgs.writeText "eelco-${exampleId}:${toString step.index}" step.text;
+    teshArgs = lib.pipe prompts [
+      (map lib.escapeShellArg)
+      (lib.concatStringsSep " ")
+    ];
   in
     {
       "file-upsert" = ''
@@ -40,7 +46,7 @@
         cp ${file} ${lib.escapeShellArg step.path}
       '';
       "bash-session" = ''
-        ${lib.getExe teshIt} < ${file}
+        ${lib.getExe teshIt} ${teshArgs} < ${file}
       '';
     }
     .${step.type};

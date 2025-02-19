@@ -11,7 +11,7 @@
     (lib.mapAttrs (
       path: _type:
         import "${passingFixturesPath}/${path}/test.nix" {
-          inherit pkgs lib;
+          inherit pkgs lib self;
           inherit (self.lib) eelco;
         }
     ))

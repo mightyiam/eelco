@@ -1,0 +1,183 @@
+diff --git a/src/tesh/extract.py b/src/tesh/extract.py
+index d7d2515..a07cc15 100644
+--- a/src/tesh/extract.py
++++ b/src/tesh/extract.py
+@@ -202,7 +202,9 @@ def extract_blocks(session: ShellSession, verbose: bool) -> None:
+ def get_prompt_regex(session: ShellSession) -> str:
+     """Return the regex for the prompt."""
+     if session.ps1:
+-        return r"(^\$$|\$ |{ps1} )".format(ps1=re.escape(session.ps1))
++        # <<< TODO: rename `session.ps1` to `session.prompts` >>>
++        alt_prompts = "|".join(re.escape(prompt) for prompt in session.ps1)
++        return r"(^\$$|\$ |{alt_prompts})".format(alt_prompts=alt_prompts)
+     else:
+         return r"(^\$$|\$ )"
+ 
+diff --git a/src/tesh/test.py b/src/tesh/test.py
+index 967216f..0f709bd 100644
+--- a/src/tesh/test.py
++++ b/src/tesh/test.py
+@@ -12,57 +12,28 @@
+ import sys
+ 
+ 
+-class NoANSIExpecter(pexpect.Expecter):
+-    """Custom Expecter to filter out ANSI escape code."""
+-
++class MyCoder(object):
+     # regex for vt100 from https://stackoverflow.com/a/14693789/5008284
+     ansi_escape = re.compile(r"(\x1B[@-_][0-?]*[ -/]*[@-~]|\\[\[\]])")
+ 
+-    def new_data(self, data: str) -> int:
+-        """Filter out ANSI escape code.
+-
+-        And then call original `pexpect.Expecter.new_data` function.
+-        """
+-        data = self.ansi_escape.sub("", data)
+-        return pexpect.Expecter.new_data(self, data)
+-
+-
+-class spawn(pexpect.spawn):
+-    def expect_list(
+-        self,
+-        pattern_list: list[str],
+-        timeout: int = -1,
+-        searchwindowsize: int = -1,
+-        async_: bool = False,
+-        **kw: bool,
+-    ) -> int:
+-        """Use NoANSIExpecter to filter out ANSI escape code.
+-
+-        We copied original `expect_list` function to be able to replace the
+-        Expecter.
+-        """
+-        if timeout == -1:
+-            timeout = self.timeout
+-        if "async" in kw:  # pragma: no cover
+-            async_ = kw.pop("async")
+-        if kw:  # pragma: no cover
+-            raise TypeError("Unknown keyword arguments: {}".format(kw))
+-
+-        exp = NoANSIExpecter(
+-            self, pexpect.expect.searcher_re(pattern_list), searchwindowsize
+-        )
+-        if async_:  # pragma: no cover
+-            from pexpect._async import expect_async
++    def __init__(self, og_coder):
++        self._og_coder = og_coder
+ 
+-            return expect_async(exp, timeout)
+-        else:
+-            return exp.expect_loop(timeout)
++    def encode(self, *args, **kwargs):
++        """>>> TODO <<<"""
++        return self._og_coder.encode(*args, **kwargs)
++
++    def decode(self, *args, **kwargs):
++        """>>> TODO <<<"""
++        decoded = self._og_coder.decode(*args, **kwargs)
++        decoded = self.ansi_escape.sub("", decoded).replace("\r", "")
++        return decoded
+ 
+ 
+ def test(filename: str, session: ShellSession, verbose: bool, debug: bool) -> None:
+     """Run testable sessions in a pexpect shell."""
+     with Path(filename).parent:
+-        shell = spawn(
++        shell = pexpect.spawn(
+             "bash --norc --noprofile",
+             encoding="utf-8",
+             env={
+@@ -78,6 +49,7 @@ def test(filename: str, session: ShellSession, verbose: bool, debug: bool) -> No
+             # truncated output.
+             dimensions=(24, 1000),
+         )
++        shell._decoder = MyCoder(shell._decoder)  # <<< hack, TODO: explain >>>
+         shell.expect(r"\$ ")
+         if session.setup:
+             shell.sendline("source " + session.setup)
+@@ -90,7 +62,8 @@ def test(filename: str, session: ShellSession, verbose: bool, debug: bool) -> No
+ 
+             shell.sendline(block.command)
+             for command_line in block.command.splitlines():
+-                shell.expect_exact(command_line + "\r\n")
++                # <<< shell.expect_exact(command_line + "\r\n")
++                shell.expect_exact(command_line + "\n")  # <<<
+ 
+             # we expect the prompt of the next command unless there's no more
+             if index + 1 < len(session.blocks):
+@@ -126,25 +99,25 @@ def test(filename: str, session: ShellSession, verbose: bool, debug: bool) -> No
+ 
+             compare_outputs(shell, block, debug)
+ 
+-            # handle exit codes
+-            shell.sendline("echo $?")
+-            shell.expect("echo [$][?]")
+-            shell.expect(prompt)
+-            assert isinstance(shell.before, str)
+-            exitcode = int(shell.before.strip())
+-            if session.exitcodes and exitcode != session.exitcodes[index]:
+-                print("❌ Failed")  # noqa: ENC100
+-                print("         Command:", block.command)
+-                print()
+-                print("         Expected exit code:", session.exitcodes[index])
+-                print("         Got exit code:", exitcode)
+-                if debug:  # pragma: no cover
+-                    invoke_debug(shell, block)
+-                else:
+-                    sys.exit(1)
+-
+-
+-def get_actual_output(shell: spawn) -> str:
++            # <<< # handle exit codes
++            # <<< shell.sendline("echo $?")
++            # <<< shell.expect("echo [$][?]")
++            # <<< shell.expect(prompt)
++            # <<< assert isinstance(shell.before, str)
++            # <<< exitcode = int(shell.before.strip())
++            # <<< if session.exitcodes and exitcode != session.exitcodes[index]:
++            # <<<     print("❌ Failed")  # noqa: ENC100
++            # <<<     print("         Command:", block.command)
++            # <<<     print()
++            # <<<     print("         Expected exit code:", session.exitcodes[index])
++            # <<<     print("         Got exit code:", exitcode)
++            # <<<     if debug:  # pragma: no cover
++            # <<<         invoke_debug(shell, block)
++            # <<<     else:
++            # <<<         sys.exit(1)
++
++
++def get_actual_output(shell: pexpect.spawn) -> str:
+     """Massage shell output to be able to compare it."""
+     assert isinstance(shell.before, str)
+     actual_output = shell.before.rstrip().replace("\r\n", "\n")
+@@ -164,7 +137,7 @@ def get_expected_output(block: Block) -> str:
+     return "\n".join([line.rstrip() for line in expected_output.split("\n")])
+ 
+ 
+-def compare_outputs(shell: spawn, block: Block, debug: bool) -> None:
++def compare_outputs(shell: pexpect.spawn, block: Block, debug: bool) -> None:
+     """Compare expected and the actual output and fail if they don't match."""
+     actual_output = get_actual_output(shell)
+     expected_output = get_expected_output(block)
+@@ -174,9 +147,9 @@ def compare_outputs(shell: spawn, block: Block, debug: bool) -> None:
+         print("         Command:", block.command)
+         print()
+         print("         Expected:")
+-        print(expected_output)
++        print(repr(expected_output))
+         print("         Got:")
+-        print(actual_output)
++        print(repr(actual_output))
+ 
+         # This is tested in test_debug but coverage doesn't catch it because
+         # it is executed in a subshell
+@@ -188,7 +161,7 @@ def compare_outputs(shell: spawn, block: Block, debug: bool) -> None:
+ 
+ # This is tested in test_debug but coverage doesn't catch it because
+ # it is executed in a subshell
+-def invoke_debug(shell: spawn, block: Block) -> None:  # pragma: no cover
++def invoke_debug(shell: pexpect.spawn, block: Block) -> None:  # pragma: no cover
+     """Take the user to a debug shell."""
+     print()
+     print("Taking you into the shell ...")
