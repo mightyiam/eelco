@@ -14,7 +14,7 @@ index d7d2515..a07cc15 100644
          return r"(^\$$|\$ )"
  
 diff --git a/src/tesh/test.py b/src/tesh/test.py
-index 967216f..cc7c109 100644
+index 967216f..abbcb9f 100644
 --- a/src/tesh/test.py
 +++ b/src/tesh/test.py
 @@ -12,57 +12,28 @@
@@ -155,7 +155,7 @@ index 967216f..cc7c109 100644
          .replace("?", "[?]")
          .replace("...", "*")
      )
-+    # <<< expected_output = expected_output.replace("*\n", "*")  # <<<
++    expected_output = expected_output.replace("*\n", "*")  # <<<
      # trim whitespace in every line
      return "\n".join([line.rstrip() for line in expected_output.split("\n")])
  
