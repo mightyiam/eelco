@@ -1,3 +1,16 @@
+TODO:
+  - Is there a risk of a gc between these steps breaking this example?
+    ```shell-session example="callpackage"
+    $ nix-build
+    ```
+
+    ...gc here...
+
+    ```shell-session example="callpackage"
+    $ ./result/bin/hello
+    Hello, world!
+    ```
+
 ![eelco](./eelco.png)
 
 This is a CLI that reads markdown files,
