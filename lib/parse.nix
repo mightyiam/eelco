@@ -182,48 +182,55 @@ lib: path: content: let
                 example =
                   examples.${openingFence.exampleName}
                   or {steps = [];};
-              in (
-                if openingFence ? error
-                then {
-                  state = {
-                    type = "in-fenced-code-block";
-                    inherit openingFence;
-                  };
-                  errors =
-                    errors
-                    ++ [
-                      {
-                        inherit path;
-                        lineIndex = index;
-                        message = openingFence.error;
-                      }
-                    ];
-                }
-                else {
-                  state = {
-                    type = "in-step-fenced-code-block";
-                    inherit openingFence;
-                  };
-                  examples =
-                    examples
-                    // {
-                      ${openingFence.exampleName} =
-                        example
-                        // {
-                          steps =
-                            example.steps
-                            ++ [
-                              {
-                                path = state.exampleFilePath;
-                                index = builtins.length example.steps;
-                                type = "file-upsert";
-                                text = null;
-                              }
-                            ];
-                        };
+              in
+                {
+                  error = {
+                    state = {
+                      type = "in-fenced-code-block";
+                      inherit openingFence;
                     };
+                    errors =
+                      errors
+                      ++ [
+                        {
+                          inherit path;
+                          lineIndex = index;
+                          message = openingFence.error;
+                        }
+                      ];
+                  };
+                  not-tested = {
+                    state = {
+                      type = "in-fenced-code-block";
+                      inherit openingFence;
+                    };
+                  };
+                  example = {
+                    state = {
+                      type = "in-step-fenced-code-block";
+                      inherit openingFence;
+                    };
+                    examples =
+                      examples
+                      // {
+                        ${openingFence.exampleName} =
+                          example
+                          // {
+                            steps =
+                              example.steps
+                              ++ [
+                                {
+                                  path = state.exampleFilePath;
+                                  index = builtins.length example.steps;
+                                  type = "file-upsert";
+                                  text = null;
+                                }
+                              ];
+                          };
+                      };
+                  };
                 }
-              )
+                .${openingFence.type}
               else {
                 state.type = "in-root";
                 errors =
