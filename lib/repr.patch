@@ -1,9 +1,3 @@
-commit 6c64108740998441472e1e2687d7b905565d7b94
-Author: Jeremy Fleischman <jeremyfleischman@gmail.com>
-Date:   Wed Feb 19 14:36:54 2025 +0700
-
-    --wip-- [skip ci]
-
 diff --git a/src/tesh/extract.py b/src/tesh/extract.py
 index d7d2515..a07cc15 100644
 --- a/src/tesh/extract.py
@@ -20,7 +14,7 @@ index d7d2515..a07cc15 100644
          return r"(^\$$|\$ )"
  
 diff --git a/src/tesh/test.py b/src/tesh/test.py
-index 967216f..0f709bd 100644
+index 967216f..cc7c109 100644
 --- a/src/tesh/test.py
 +++ b/src/tesh/test.py
 @@ -12,57 +12,28 @@
@@ -157,7 +151,12 @@ index 967216f..0f709bd 100644
      """Massage shell output to be able to compare it."""
      assert isinstance(shell.before, str)
      actual_output = shell.before.rstrip().replace("\r\n", "\n")
-@@ -164,7 +137,7 @@ def get_expected_output(block: Block) -> str:
+@@ -160,11 +133,12 @@ def get_expected_output(block: Block) -> str:
+         .replace("?", "[?]")
+         .replace("...", "*")
+     )
++    # <<< expected_output = expected_output.replace("*\n", "*")  # <<<
+     # trim whitespace in every line
      return "\n".join([line.rstrip() for line in expected_output.split("\n")])
  
  
@@ -166,7 +165,7 @@ index 967216f..0f709bd 100644
      """Compare expected and the actual output and fail if they don't match."""
      actual_output = get_actual_output(shell)
      expected_output = get_expected_output(block)
-@@ -174,9 +147,9 @@ def compare_outputs(shell: spawn, block: Block, debug: bool) -> None:
+@@ -174,9 +148,9 @@ def compare_outputs(shell: spawn, block: Block, debug: bool) -> None:
          print("         Command:", block.command)
          print()
          print("         Expected:")
@@ -178,7 +177,7 @@ index 967216f..0f709bd 100644
  
          # This is tested in test_debug but coverage doesn't catch it because
          # it is executed in a subshell
-@@ -188,7 +161,7 @@ def compare_outputs(shell: spawn, block: Block, debug: bool) -> None:
+@@ -188,7 +162,7 @@ def compare_outputs(shell: spawn, block: Block, debug: bool) -> None:
  
  # This is tested in test_debug but coverage doesn't catch it because
  # it is executed in a subshell

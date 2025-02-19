@@ -6,6 +6,7 @@
   env ? {},
   requiredSystemFeatures ? [],
   prompts ? [],
+  timeout ? 30,
 }: let
   inherit (pkgs) lib;
 
@@ -36,7 +37,7 @@
   }: let
     file = pkgs.writeText "eelco-${exampleId}:${toString step.index}" step.text;
     teshArgs = lib.pipe prompts [
-      (map lib.escapeShellArg)
+      (map (prompt: "--prompt ${lib.escapeShellArg prompt}"))
       (lib.concatStringsSep " ")
     ];
   in
@@ -46,7 +47,7 @@
         cp ${file} ${lib.escapeShellArg step.path}
       '';
       "bash-session" = ''
-        ${lib.getExe teshIt} ${teshArgs} < ${file}
+        ${lib.getExe teshIt} ${teshArgs} --timeout ${toString timeout} < ${file}
       '';
     }
     .${step.type};
