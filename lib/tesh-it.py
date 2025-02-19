@@ -23,10 +23,6 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("prompt", nargs="*")
     args = parser.parse_args()
-    # <<< [
-    # <<<     "[nix-shell:~]$", #<<<
-    # <<<     "nix-repl>", #<<<
-    # <<< ],
     test_it(sys.stdin.read(), args.prompt)
 
 if __name__ == "__main__":
