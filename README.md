@@ -10,6 +10,8 @@ TODO:
     $ ./result/bin/hello
     Hello, world!
     ```
+  - `fixtures/passing/nix-build/test.md`: is non deterministic because
+    nix-build sometimes prints "building derivation..." and sometimes doesn't
 
 ![eelco](./eelco.png)
 
