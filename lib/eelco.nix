@@ -58,11 +58,15 @@
           nativeBuildInputs = runtimeInputs;
           inherit env requiredSystemFeatures;
         } ''
-          cp -r ${prevDrv}/ $out
-          chmod +w --recursive $out
-          cd $out
+          cp -r ${prevDrv}/ ./tmp
+          chmod +w --recursive ./tmp
 
-          ${stepToCommand {inherit step exampleId;}}
+          (
+            cd ./tmp
+            ${stepToCommand {inherit step exampleId;}}
+          )
+
+          mv ./tmp $out
         ''
     )
     (pkgs.runCommandNoCC "empty" {} "mkdir $out")
